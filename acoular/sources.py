@@ -18,7 +18,8 @@
 """
 
 # imports from other packages
-from numpy import array, sqrt, ones, empty, newaxis, uint32, arange, dot
+from numpy import array, sqrt, ones, empty, newaxis, uint32, arange, dot, \
+ndarray
 from traits.api import Float, Int, Property, Trait, Delegate, \
 cached_property, Tuple, HasPrivateTraits, CLong, File, Instance, Any, \
 on_trait_change, List, CArray
@@ -152,8 +153,17 @@ class TimeSamples( SamplesGenerator ):
                 pass
         self.h5f = tables.open_file(self.name)
         self.data = self.h5f.root.time_data
+        """
+        to make it work with MATLAB, too
         self.sample_freq = self.data.get_attr('sample_freq')
+        """
         (self.numsamples, self.numchannels) = self.data.shape
+        temp_fs = self.data.get_attr('sample_freq')
+
+        if isinstance(temp_fs, ndarray):
+            self.sample_freq = temp_fs.item(0)
+        else:
+            self.sample_freq = temp_fs
 
     def result(self, num=128):
         """
@@ -295,8 +305,16 @@ class MaskedTimeSamples( TimeSamples ):
                 pass
         self.h5f = tables.open_file(self.name)
         self.data = self.h5f.root.time_data
+        """
         self.sample_freq = self.data.get_attr('sample_freq')
-        (self.numsamples_total, self.numchannels_total) = self.data.shape
+        """
+        (self.numsamples, self.numchannels) = self.data.shape
+        temp_fs = self.data.get_attr('sample_freq')
+
+        if isinstance(temp_fs, ndarray):
+            self.sample_freq = temp_fs.item(0)
+        else:
+            self.sample_freq = temp_fs
 
     def result(self, num=128):
         """
